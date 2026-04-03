@@ -1,2 +1,17 @@
+[project]
+name = "business-income-api"
+version = "1.0.0"
+description = "API REST para gestionar estadísticas de ingresos"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "aiomysql>=0.2.0",
+    "python-jose[cryptography]>=3.3.0",
+    "python-multipart>=0.0.12",
+]
+
 [tool.fastapi]
 entrypoint = "app.main:app"
