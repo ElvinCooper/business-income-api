@@ -55,3 +55,21 @@ class GraficaDataPoint(BaseModel):
 
 class IngresoGraficaResponse(BaseModel):
     data: list[GraficaDataPoint]
+
+
+class IngresoMensualItem(BaseModel):
+    mes: int
+    total_recibos: int
+    total: float
+
+    @field_validator("total", mode="before")
+    @classmethod
+    def format_total(cls, v):
+        if isinstance(v, (int, float)):
+            return float(f"{v:.2f}")
+        return v
+
+
+class IngresoAnualResponse(BaseModel):
+    year: int
+    data: list[IngresoMensualItem]

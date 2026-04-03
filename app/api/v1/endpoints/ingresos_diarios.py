@@ -1,11 +1,15 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Path, Query
 
 from app.core.dependencies import CurrentUserDep
 from app.db.connection import DatabaseConnection, get_db
-from app.schemas.ingreso import IngresoDiarioResponse, ResumenDiaResponse
+from app.schemas.ingreso import (
+    IngresoAnualResponse,
+    IngresoDiarioResponse,
+    ResumenDiaResponse,
+)
 
 router = APIRouter(prefix="/ingresos", tags=["ingresos"])
 
@@ -47,3 +51,33 @@ async def get_resumen_por_rango_fecha(
     """
     results = await db.fetch_all(query, (fecha_inicio, fecha_fin))
     return {"fecha_inicio": fecha_inicio, "fecha_fin": fecha_fin, "data": results}
+
+
+@router.get("/anual/{year}", response_model=IngresoAnualResponse)
+async def get_ingresos_anuales(
+    year: Annotated[int, Path(description="Año a consultar (ej: 2025)")],
+    current_user: CurrentUserDep,
+    db: Annotated[DatabaseConnection, Depends(get_db)],
+):
+    """Obtiene los ingresos totales por mes para un año específico."""
+    query = """
+        SELECT 
+            MONTH(fecha) as mes,
+            COUNT(*) as total_recibos,
+            SUM(total) as total
+        FROM cxc
+        WHERE YEAR(fecha) = %s
+        GROUP BY MONTH(fecha)
+        ORDER BY mes
+    """
+    results = await db.fetch_all(query, (year,))
+
+    results_dict = {r["mes"]: r for r in results}
+    full_year = []
+    for mes in range(1, 13):
+        if mes in results_dict:
+            full_year.append(results_dict[mes])
+        else:
+            full_year.append({"mes": mes, "total_recibos": 0, "total": 0.0})
+
+    return {"year": year, "data": full_year}
