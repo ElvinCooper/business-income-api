@@ -10,9 +10,10 @@ security = HTTPBearer()
 
 
 class CurrentUser:
-    def __init__(self, user_id: int, username: str):
+    def __init__(self, user_id: int, username: str, fullname: str):
         self.user_id = user_id
         self.username = username
+        self.fullname = fullname
 
 
 async def get_current_user(
@@ -30,6 +31,7 @@ async def get_current_user(
 
     user_id = payload.get("sub")
     username = payload.get("username")
+    fullname = payload.get("fullname", username)
 
     if user_id is None:
         raise HTTPException(
@@ -38,7 +40,9 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return CurrentUser(user_id=int(user_id), username=str(username))
+    return CurrentUser(
+        user_id=int(user_id), username=str(username), fullname=str(fullname)
+    )
 
 
 CurrentUserDep = Annotated[CurrentUser, Depends(get_current_user)]

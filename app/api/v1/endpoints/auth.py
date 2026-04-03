@@ -2,9 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.core.dependencies import CurrentUserDep
 from app.core.security import create_access_token
 from app.db.connection import DatabaseConnection, get_db
-from app.schemas.auth import LoginRequest, TokenResponse
+from app.schemas.auth import CurrentUserResponse, LoginRequest, TokenResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -35,7 +36,29 @@ async def login(
         )
 
     access_token = create_access_token(
-        data={"sub": str(user["idusuario"]), "username": user["usuario"]}
+        data={
+            "sub": str(user["idusuario"]),
+            "username": user["usuario"],
+            "fullname": user["fullname"],
+        }
     )
 
     return TokenResponse(access_token=access_token)
+
+
+@router.get("/me", response_model=CurrentUserResponse)
+async def get_current_user(
+    current_user: CurrentUserDep,
+):
+    """Obtiene la información del usuario actualmente logueado."""
+    return CurrentUserResponse(
+        idusuario=current_user.user_id,
+        usuario=current_user.username,
+        fullname=current_user.fullname,
+    )
+
+
+@router.post("/logout")
+async def logout(current_user: CurrentUserDep):
+    """Cierra la sesión del usuario."""
+    return {"message": "Sesión cerrada exitosamente"}
