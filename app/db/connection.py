@@ -1,4 +1,4 @@
-import aiomysql
+import pymysql
 import logging
 from typing import Any
 
@@ -10,21 +10,22 @@ logger = logging.getLogger(__name__)
 async def execute_query(query: str, params: tuple = ()) -> list[dict[str, Any]]:
     logger.info(f"Executing query on {settings.DB_HOST}")
     try:
-        conn = await aiomysql.connect(
+        connection = pymysql.connect(
             host=settings.DB_HOST,
             port=settings.DB_PORT,
             user=settings.DB_USER,
             password=settings.DB_PASSWORD,
-            db=settings.DB_NAME,
+            database=settings.DB_NAME,
+            cursorclass=pymysql.cursors.DictCursor,
             autocommit=True,
         )
-        async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(query, params)
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
             if query.strip().upper().startswith("SELECT"):
-                results = await cur.fetchall()
+                results = cursor.fetchall()
             else:
                 results = []
-        conn.close()
+        connection.close()
         return results
     except Exception as e:
         logger.error(f"Query execution failed: {e}")
