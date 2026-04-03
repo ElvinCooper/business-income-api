@@ -1,23 +1,45 @@
 from datetime import date
-from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, field_validator
 
 
-class IngresoDiarioBase(BaseModel):
+class IngresoDiarioResponse(BaseModel):
+    recibo: int
     fecha: date
-    monto: float = Field(gt=0)
+    total: float
+    fpago: str
+    cliente: str
+    descrip: str
+    usuario: str
 
-
-class IngresoDiarioCreate(IngresoDiarioBase):
-    pass
-
-
-class IngresoDiarioResponse(IngresoDiarioBase):
-    id: int
+    @field_validator("total", mode="before")
+    @classmethod
+    def format_total(cls, v):
+        if isinstance(v, (int, float)):
+            return float(f"{v:.2f}")
+        return v
 
     class Config:
         from_attributes = True
+
+
+class ResumenDiaItem(BaseModel):
+    descrip: str
+    total_recibos: int
+    total: float
+
+    @field_validator("total", mode="before")
+    @classmethod
+    def format_total(cls, v):
+        if isinstance(v, (int, float)):
+            return float(f"{v:.2f}")
+        return v
+
+
+class ResumenDiaResponse(BaseModel):
+    fecha_inicio: date
+    fecha_fin: date
+    data: list[ResumenDiaItem]
 
 
 class IngresoRangoResponse(BaseModel):
