@@ -1,17 +1,23 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.dependencies import CurrentUserDep
 from app.core.security import create_access_token, decode_access_token
 from app.db.connection import fetch_one
+from app.db.postgres import add_token_to_blocklist
 from app.schemas.auth import CurrentUserResponse, LoginRequest, TokenResponse
 
 security = HTTPBearer(auto_error=False)
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _add_token_blocklist(jti: str, idusuario: int):
+    """Agrega el token a la blocklist en PostgreSQL"""
+    add_token_to_blocklist(jti, idusuario)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -70,6 +76,13 @@ async def get_current_user_info(current_user: CurrentUserDep):
 
 
 @router.post("/logout")
-async def logout():
-    """Cierra la sesión del usuario."""
+async def logout(
+    background_tasks: BackgroundTasks,
+    current_user: CurrentUserDep,
+):
+    """Cierra la sesión del usuario agregando el token a la blocklist."""
+    if current_user.jti:
+        background_tasks.add_task(
+            _add_token_blocklist, current_user.jti, current_user.user_id
+        )
     return {"message": "Sesión cerrada exitosamente"}

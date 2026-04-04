@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -13,7 +14,8 @@ def create_access_token(
     expire = datetime.utcnow() + (
         expires_delta or timedelta(minutes=settings.JWT_EXPIRATION_MINUTES)
     )
-    to_encode.update({"exp": expire})
+    jti = str(uuid.uuid4())
+    to_encode.update({"exp": expire, "jti": jti})
     return jwt.encode(
         to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
     )

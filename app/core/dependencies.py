@@ -5,6 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
 from app.core.security import decode_access_token
+from app.db.postgres import is_token_revoked
 
 
 security = HTTPBearer(auto_error=False)
@@ -16,6 +17,7 @@ class CurrentUser(BaseModel):
     fullname: str
     cia: int
     empresa: str
+    jti: str
 
 
 async def get_current_user(
@@ -38,6 +40,14 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    jti = payload.get("jti")
+    if jti and is_token_revoked(jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token ha sido revocado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     user_id = payload.get("sub")
     username = payload.get("username")
     fullname = payload.get("fullname", username)
@@ -57,6 +67,7 @@ async def get_current_user(
         fullname=str(fullname),
         cia=int(cia) if cia else 0,
         empresa=str(empresa) if empresa else "",
+        jti=str(jti) if jti else "",
     )
 
 
