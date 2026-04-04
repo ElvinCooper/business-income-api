@@ -41,13 +41,14 @@ async def get_resumen_por_rango_fecha(
     """Obtiene el resumen de ingresos por descripción en un rango de fechas."""
     query = """
         SELECT 
+            fecha,
             descrip,
             COUNT(*) as total_recibos,
             SUM(total) as total
         FROM cxc
         WHERE fecha BETWEEN %s AND %s AND cia = %s
-        GROUP BY descrip
-        ORDER BY total DESC
+        GROUP BY fecha, descrip
+        ORDER BY fecha
     """
     results = await fetch_all(query, (fecha_inicio, fecha_fin, current_user.cia))
     total_general = sum(float(r["total"]) for r in results)

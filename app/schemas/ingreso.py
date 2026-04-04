@@ -29,6 +29,7 @@ class IngresoDiarioWrapper(BaseModel):
 
 
 class ResumenDiaItem(BaseModel):
+    fecha: date
     descrip: str
     total_recibos: int
     total: float
