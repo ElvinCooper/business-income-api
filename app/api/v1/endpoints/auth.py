@@ -1,10 +1,46 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.core.security import create_access_token
+from app.core.security import create_access_token, decode_access_token
 from app.db.connection import fetch_one
 from app.schemas.auth import CurrentUserResponse, LoginRequest, TokenResponse
+
+security = HTTPBearer(auto_error=False)
+
+
+def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+) -> dict:
+    """Dependencia para obtener el usuario desde el token JWT"""
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token no proporcionado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = credentials.credentials
+    payload = decode_access_token(token)
+
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido o expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return {
+        "idusuario": payload.get("sub"),
+        "username": payload.get("username"),
+        "fullname": payload.get("fullname"),
+        "cia": payload.get("cia"),
+        "empresa": payload.get("empresa"),
+    }
+
+
+CurrentUserDep = Annotated[dict, Depends(get_current_user)]
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -13,9 +49,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def login(credentials: LoginRequest):
     """Autentica al usuario y devuelve un token JWT."""
     query = """
-        SELECT idusuario, usuario, clave, fullname
-        FROM usuario
-        WHERE usuario = %s
+        SELECT us.idusuario, us.usuario, us.clave, us.fullname, us.cia, su.empresa
+        FROM usuario us 
+        JOIN sucursal su ON us.cia = su.idcia
+        WHERE us.usuario = %s
     """
     user = await fetch_one(query, (credentials.username,))
 
@@ -36,27 +73,34 @@ async def login(credentials: LoginRequest):
             "sub": str(user["idusuario"]),
             "username": user["usuario"],
             "fullname": user["fullname"],
+            "cia": int(user["cia"]),
+            "empresa": user["empresa"],
         }
     )
 
-    return TokenResponse(access_token=access_token)
+    return TokenResponse(
+        access_token=access_token,
+        idusuario=user["idusuario"],
+        usuario=user["usuario"],
+        fullname=user["fullname"],
+        cia=int(user["cia"]),
+        empresa=user["empresa"],
+    )
 
 
 @router.get("/me", response_model=CurrentUserResponse)
-async def get_current_user(
-    current_user: Annotated[dict, Depends("app.core.dependencies.get_current_user")],
-):
-    """Obtiene la información del usuario actualmente logueado."""
+async def get_current_user_info(current_user: CurrentUserDep):
+    """Obtiene la información del usuario desde el token JWT."""
     return CurrentUserResponse(
-        idusuario=current_user["user_id"],
+        idusuario=int(current_user["idusuario"]),
         usuario=current_user["username"],
         fullname=current_user["fullname"],
+        cia=int(current_user["cia"]),
+        empresa=current_user["empresa"],
     )
 
 
 @router.post("/logout")
-async def logout(
-    current_user: Annotated[dict, Depends("app.core.dependencies.get_current_user")],
-):
+async def logout():
     """Cierra la sesión del usuario."""
     return {"message": "Sesión cerrada exitosamente"}

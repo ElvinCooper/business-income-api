@@ -10,3 +10,8 @@ app = FastAPI(
 )
 
 app.include_router(api_v1_router, prefix="/api")
+
+
+@app.get("/")
+def root():
+    return {"message": "Business Income API", "version": settings.APP_VERSION}

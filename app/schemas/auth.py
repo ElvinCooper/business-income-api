@@ -11,9 +11,16 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    idusuario: int
+    usuario: str
+    fullname: str
+    cia: int
+    empresa: str
 
 
 class CurrentUserResponse(BaseModel):
     idusuario: int
     usuario: str
     fullname: str
+    cia: int
+    empresa: str
