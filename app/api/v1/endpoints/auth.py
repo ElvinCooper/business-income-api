@@ -3,44 +3,13 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from app.core.dependencies import CurrentUserDep
 from app.core.security import create_access_token, decode_access_token
 from app.db.connection import fetch_one
 from app.schemas.auth import CurrentUserResponse, LoginRequest, TokenResponse
 
 security = HTTPBearer(auto_error=False)
 
-
-def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
-) -> dict:
-    """Dependencia para obtener el usuario desde el token JWT"""
-    if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token no proporcionado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    token = credentials.credentials
-    payload = decode_access_token(token)
-
-    if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return {
-        "idusuario": payload.get("sub"),
-        "username": payload.get("username"),
-        "fullname": payload.get("fullname"),
-        "cia": payload.get("cia"),
-        "empresa": payload.get("empresa"),
-    }
-
-
-CurrentUserDep = Annotated[dict, Depends(get_current_user)]
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -54,7 +23,7 @@ async def login(credentials: LoginRequest):
         JOIN sucursal su ON us.cia = su.idcia
         WHERE us.usuario = %s
     """
-    user = await fetch_one(query, (credentials.username,))
+    user = await fetch_one(query, (credentials.usuario,))
 
     if not user:
         raise HTTPException(
@@ -62,7 +31,7 @@ async def login(credentials: LoginRequest):
             detail="Usuario o contraseña incorrectos",
         )
 
-    if credentials.password != user["clave"]:
+    if credentials.clave != user["clave"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario o contraseña incorrectos",
@@ -71,7 +40,7 @@ async def login(credentials: LoginRequest):
     access_token = create_access_token(
         data={
             "sub": str(user["idusuario"]),
-            "username": user["usuario"],
+            "usuario": user["usuario"],
             "fullname": user["fullname"],
             "cia": int(user["cia"]),
             "empresa": user["empresa"],
@@ -92,11 +61,11 @@ async def login(credentials: LoginRequest):
 async def get_current_user_info(current_user: CurrentUserDep):
     """Obtiene la información del usuario desde el token JWT."""
     return CurrentUserResponse(
-        idusuario=int(current_user["idusuario"]),
-        usuario=current_user["username"],
-        fullname=current_user["fullname"],
-        cia=int(current_user["cia"]),
-        empresa=current_user["empresa"],
+        idusuario=current_user.user_id,
+        usuario=current_user.username,
+        fullname=current_user.fullname,
+        cia=current_user.cia,
+        empresa=current_user.empresa,
     )
 
 

@@ -1,9 +1,9 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Path, Query
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import CurrentUserDep
 from app.db.connection import fetch_all
 from app.schemas.ingreso import (
     IngresoAnualResponse,
@@ -18,16 +18,16 @@ router = APIRouter(prefix="/ingresos", tags=["ingresos"])
 @router.get("/diarios", response_model=IngresoDiarioWrapper)
 async def get_ingresos_diarios(
     fecha: Annotated[date, Query(description="Fecha en formato YYYY-MM-DD")],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: CurrentUserDep,
 ):
     """Obtiene los ingresos de un día específico."""
     query = """
         SELECT recibo, fecha, total, fpago, cliente, descrip, usuario
         FROM cxc
-        WHERE fecha = %s
+        WHERE fecha = %s AND cia = %s
         ORDER BY recibo DESC
     """
-    results = await fetch_all(query, (fecha,))
+    results = await fetch_all(query, (fecha, current_user.cia))
     total_general = sum(float(r["total"]) for r in results)
     return {"data": results, "total_general": total_general}
 
@@ -36,7 +36,7 @@ async def get_ingresos_diarios(
 async def get_resumen_por_rango_fecha(
     fecha_inicio: Annotated[date, Query(description="Fecha inicio YYYY-MM-DD")],
     fecha_fin: Annotated[date, Query(description="Fecha fin YYYY-MM-DD")],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: CurrentUserDep,
 ):
     """Obtiene el resumen de ingresos por descripción en un rango de fechas."""
     query = """
@@ -45,11 +45,11 @@ async def get_resumen_por_rango_fecha(
             COUNT(*) as total_recibos,
             SUM(total) as total
         FROM cxc
-        WHERE fecha BETWEEN %s AND %s
+        WHERE fecha BETWEEN %s AND %s AND cia = %s
         GROUP BY descrip
         ORDER BY total DESC
     """
-    results = await fetch_all(query, (fecha_inicio, fecha_fin))
+    results = await fetch_all(query, (fecha_inicio, fecha_fin, current_user.cia))
     total_general = sum(float(r["total"]) for r in results)
     return {
         "fecha_inicio": fecha_inicio,
@@ -62,7 +62,7 @@ async def get_resumen_por_rango_fecha(
 @router.get("/anual/{year}", response_model=IngresoAnualResponse)
 async def get_ingresos_anuales(
     year: Annotated[int, Path(description="Año a consultar (ej: 2025)")],
-    current_user: Annotated[dict, Depends(get_current_user)],
+    current_user: CurrentUserDep,
 ):
     """Obtiene los ingresos totales por mes para un año específico."""
     query = """
@@ -71,11 +71,11 @@ async def get_ingresos_anuales(
             COUNT(*) as total_recibos,
             SUM(total) as total
         FROM cxc
-        WHERE YEAR(fecha) = %s
+        WHERE YEAR(fecha) = %s AND cia = %s
         GROUP BY MONTH(fecha)
         ORDER BY mes
     """
-    results = await fetch_all(query, (year,))
+    results = await fetch_all(query, (year, current_user.cia))
 
     results_dict = {r["mes"]: r for r in results}
     full_year = []

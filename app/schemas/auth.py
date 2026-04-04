@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 
 class LoginRequest(BaseModel):
-    username: Annotated[str, Field(min_length=1)]
-    password: Annotated[str, Field(min_length=1)]
+    usuario: Annotated[str, Field(min_length=1)]
+    clave: Annotated[str, Field(min_length=1)]
 
 
 class TokenResponse(BaseModel):
