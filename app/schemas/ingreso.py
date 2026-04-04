@@ -1,9 +1,11 @@
 from datetime import date
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class IngresoDiarioResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     recibo: int
     fecha: date
     total: float
@@ -18,9 +20,6 @@ class IngresoDiarioResponse(BaseModel):
         if isinstance(v, (int, float)):
             return float(f"{v:.2f}")
         return v
-
-    class Config:
-        from_attributes = True
 
 
 class IngresoDiarioWrapper(BaseModel):
