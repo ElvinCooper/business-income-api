@@ -23,6 +23,11 @@ class IngresoDiarioResponse(BaseModel):
         from_attributes = True
 
 
+class IngresoDiarioWrapper(BaseModel):
+    data: list[IngresoDiarioResponse]
+    total_general: float
+
+
 class ResumenDiaItem(BaseModel):
     descrip: str
     total_recibos: int
@@ -40,6 +45,7 @@ class ResumenDiaResponse(BaseModel):
     fecha_inicio: date
     fecha_fin: date
     data: list[ResumenDiaItem]
+    total_general: float
 
 
 class IngresoRangoResponse(BaseModel):
@@ -73,3 +79,4 @@ class IngresoMensualItem(BaseModel):
 class IngresoAnualResponse(BaseModel):
     year: int
     data: list[IngresoMensualItem]
+    total_general: float

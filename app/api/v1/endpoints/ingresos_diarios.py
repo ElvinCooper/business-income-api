@@ -8,13 +8,14 @@ from app.db.connection import fetch_all
 from app.schemas.ingreso import (
     IngresoAnualResponse,
     IngresoDiarioResponse,
+    IngresoDiarioWrapper,
     ResumenDiaResponse,
 )
 
 router = APIRouter(prefix="/ingresos", tags=["ingresos"])
 
 
-@router.get("/diarios", response_model=list[IngresoDiarioResponse])
+@router.get("/diarios", response_model=IngresoDiarioWrapper)
 async def get_ingresos_diarios(
     fecha: Annotated[date, Query(description="Fecha en formato YYYY-MM-DD")],
     current_user: Annotated[dict, Depends(get_current_user)],
@@ -26,7 +27,9 @@ async def get_ingresos_diarios(
         WHERE fecha = %s
         ORDER BY recibo DESC
     """
-    return await fetch_all(query, (fecha,))
+    results = await fetch_all(query, (fecha,))
+    total_general = sum(float(r["total"]) for r in results)
+    return {"data": results, "total_general": total_general}
 
 
 @router.get("/resumen", response_model=ResumenDiaResponse)
@@ -47,7 +50,13 @@ async def get_resumen_por_rango_fecha(
         ORDER BY total DESC
     """
     results = await fetch_all(query, (fecha_inicio, fecha_fin))
-    return {"fecha_inicio": fecha_inicio, "fecha_fin": fecha_fin, "data": results}
+    total_general = sum(float(r["total"]) for r in results)
+    return {
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin,
+        "data": results,
+        "total_general": total_general,
+    }
 
 
 @router.get("/anual/{year}", response_model=IngresoAnualResponse)
@@ -76,4 +85,8 @@ async def get_ingresos_anuales(
         else:
             full_year.append({"mes": mes, "total_recibos": 0, "total": 0.0})
 
-    return {"year": year, "data": full_year}
+    return {
+        "year": year,
+        "data": full_year,
+        "total_general": sum(float(r["total"]) for r in full_year),
+    }
