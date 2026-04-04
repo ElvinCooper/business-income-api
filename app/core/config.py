@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Business Income API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
+    LOG_LEVEL: str = "INFO"
 
     DB_HOST: str = "localhost"
     DB_PORT: int = 3306
