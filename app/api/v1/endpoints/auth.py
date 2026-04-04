@@ -40,7 +40,7 @@ async def login(credentials: LoginRequest):
     access_token = create_access_token(
         data={
             "sub": str(user["idusuario"]),
-            "usuario": user["usuario"],
+            "username": user["usuario"],
             "fullname": user["fullname"],
             "cia": int(user["cia"]),
             "empresa": user["empresa"],
