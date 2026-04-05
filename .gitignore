@@ -29,3 +29,9 @@ env/
 
 .vercel
 .env*.local
+
+# Coverage
+.coverage
+cov_annotate/
+htmlcov/
+.pytest_cache/
