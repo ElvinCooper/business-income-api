@@ -24,10 +24,10 @@ async def get_ingresos_diarios(
     query = """
         SELECT recibo, fecha, total, fpago, cliente, descrip, usuario
         FROM cxc
-        WHERE fecha = %s AND cia = %s
+        WHERE fecha = %s
         ORDER BY recibo DESC
     """
-    results = await fetch_all(query, (fecha, current_user.cia))
+    results = await fetch_all(query, (fecha,))
     total_general = sum(float(r["total"]) for r in results)
     return {"data": results, "total_general": total_general}
 
@@ -46,11 +46,11 @@ async def get_resumen_por_rango_fecha(
             COUNT(*) as total_recibos,
             SUM(total) as total
         FROM cxc
-        WHERE fecha BETWEEN %s AND %s AND cia = %s
+        WHERE fecha BETWEEN %s AND %s
         GROUP BY fecha, descrip
         ORDER BY fecha
     """
-    results = await fetch_all(query, (fecha_inicio, fecha_fin, current_user.cia))
+    results = await fetch_all(query, (fecha_inicio, fecha_fin))
     total_general = sum(float(r["total"]) for r in results)
     return {
         "fecha_inicio": fecha_inicio,
@@ -72,11 +72,11 @@ async def get_ingresos_anuales(
             COUNT(*) as total_recibos,
             SUM(total) as total
         FROM cxc
-        WHERE YEAR(fecha) = %s AND cia = %s
+        WHERE YEAR(fecha) = %s
         GROUP BY MONTH(fecha)
         ORDER BY mes
     """
-    results = await fetch_all(query, (year, current_user.cia))
+    results = await fetch_all(query, (year))
 
     results_dict = {r["mes"]: r for r in results}
     full_year = []
