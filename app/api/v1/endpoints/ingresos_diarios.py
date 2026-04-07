@@ -10,6 +10,7 @@ from app.schemas.ingreso import (
     IngresoDiarioResponse,
     IngresoDiarioWrapper,
     ResumenDiaResponse,
+    ResumenUsuarioResponse,
 )
 
 router = APIRouter(prefix="/ingresos", tags=["ingresos"])
@@ -91,4 +92,31 @@ async def get_ingresos_anuales(
         "year": year,
         "data": full_year,
         "total_general": sum(float(r["total"]) for r in full_year),
+    }
+
+
+@router.get("/usuarios", response_model=ResumenUsuarioResponse)
+async def get_resumen_por_usuario(
+    fecha_inicio: Annotated[date, Query(description="Fecha inicio YYYY-MM-DD")],
+    fecha_fin: Annotated[date, Query(description="Fecha fin YYYY-MM-DD")],
+    current_user: CurrentUserDep,
+):
+    """Obtiene el resumen de ingresos por usuario en un rango de fechas."""
+    query = """
+        SELECT 
+            usuario,
+            COUNT(*) as total_recibos,
+            SUM(total) as total
+        FROM cxc
+        WHERE fecha BETWEEN %s AND %s
+        GROUP BY usuario
+        ORDER BY total DESC
+    """
+    results = await fetch_all(query, (fecha_inicio, fecha_fin))
+    total_general = sum(float(r["total"]) for r in results)
+    return {
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin,
+        "data": results,
+        "total_general": total_general,
     }
