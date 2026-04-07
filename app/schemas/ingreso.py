@@ -142,6 +142,7 @@ class IngresoAnualResponse(BaseModel):
 
 class ResumenUsuarioItem(BaseModel):
     usuario: str
+    forma_pago: str
     total_recibos: int
     total: Decimal = Field(max_digits=15, decimal_places=2)
 
