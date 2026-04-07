@@ -17,17 +17,18 @@ router = APIRouter(prefix="/ingresos", tags=["ingresos"])
 
 @router.get("/diarios", response_model=IngresoDiarioWrapper)
 async def get_ingresos_diarios(
-    fecha: Annotated[date, Query(description="Fecha en formato YYYY-MM-DD")],
+    fecha_inicio: Annotated[date, Query(description="Fecha inicio YYYY-MM-DD")],
+    fecha_fin: Annotated[date, Query(description="Fecha fin YYYY-MM-DD")],
     current_user: CurrentUserDep,
 ):
-    """Obtiene los ingresos de un día específico."""
+    """Obtiene los ingresos en un rango de fechas."""
     query = """
         SELECT recibo, fecha, total, fpago, cliente, descrip, usuario
         FROM cxc
-        WHERE fecha = %s
-        ORDER BY recibo DESC
+        WHERE fecha BETWEEN %s AND %s
+        ORDER BY fecha DESC, recibo DESC
     """
-    results = await fetch_all(query, (fecha,))
+    results = await fetch_all(query, (fecha_inicio, fecha_fin))
     total_general = sum(float(r["total"]) for r in results)
     return {"data": results, "total_general": total_general}
 
