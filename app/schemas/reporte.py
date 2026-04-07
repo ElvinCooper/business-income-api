@@ -1,6 +1,12 @@
 from pydantic import BaseModel, Field
 
 
+class ReciboPago(BaseModel):
+    idnum: int = Field(description="Número único de pago/recibo")
+    cliente: str = Field(description="Nombre del cliente")
+    monto: float = Field(ge=0, description="Monto pagado")
+
+
 class ReporteItem(BaseModel):
     descripcion: str
     valor: float = Field(ge=0)
