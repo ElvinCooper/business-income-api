@@ -169,3 +169,34 @@ class ResumenUsuarioResponse(BaseModel):
     @field_serializer("total_general")
     def serialize_total_general(self, v: Decimal) -> float:
         return round(float(v), 2)
+
+
+class ResumenFormaPagoItem(BaseModel):
+    fpago: str
+    total_recibos: int
+    total: Decimal = Field(max_digits=15, decimal_places=2)
+
+    @field_validator("total", mode="before")
+    @classmethod
+    def format_total(cls, v):
+        return _to_float(v)
+
+    @field_serializer("total")
+    def serialize_total(self, v: Decimal) -> float:
+        return round(float(v), 2)
+
+
+class ResumenFormaPagoResponse(BaseModel):
+    fecha_inicio: date
+    fecha_fin: date
+    data: list[ResumenFormaPagoItem]
+    total_general: Decimal = Field(max_digits=15, decimal_places=2)
+
+    @field_validator("total_general", mode="before")
+    @classmethod
+    def format_total_general(cls, v):
+        return _to_float(v)
+
+    @field_serializer("total_general")
+    def serialize_total_general(self, v: Decimal) -> float:
+        return round(float(v), 2)
