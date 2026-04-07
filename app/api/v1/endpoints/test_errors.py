@@ -4,30 +4,30 @@ from fastapi.responses import JSONResponse
 router = APIRouter(prefix="/test-errors", tags=["test-errors"])
 
 
-@router.get("/division-por-cero")
+@router.get("/division-por-cero", include_in_schema=False)
 async def trigger_division_by_zero():
     result = 1 / 0
     return {"result": result}
 
 
-@router.get("/indice-fuera-rango")
+@router.get("/indice-fuera-rango", include_in_schema=False)
 async def trigger_index_error():
     data = [1, 2, 3]
     return {"value": data[99]}
 
 
-@router.get("/clave-no-existe")
+@router.get("/clave-no-existe", include_in_schema=False)
 async def trigger_key_error():
     data = {"a": 1}
     return {"value": data["z"]}
 
 
-@router.get("/type-error")
+@router.get("/type-error", include_in_schema=False)
 async def trigger_type_error():
     return {"value": "string" + 123}
 
 
-@router.get("/sql-error")
+@router.get("/sql-error", include_in_schema=False)
 async def trigger_sql_error():
     query = "SELECT * FROM nonexistent_table_xyz"
     from app.db.connection import fetch_all
@@ -36,7 +36,7 @@ async def trigger_sql_error():
     return {"data": results}
 
 
-@router.get("/db-connection-error")
+@router.get("/db-connection-error", include_in_schema=False)
 async def trigger_db_connection_error():
     from app.db.postgres import get_db_pool
 
@@ -46,7 +46,7 @@ async def trigger_db_connection_error():
     return {"status": "ok"}
 
 
-@router.get("/json-serialization-error")
+@router.get("/json-serialization-error", include_in_schema=False)
 async def trigger_json_error():
     class NonSerializable:
         def __init__(self):
@@ -56,12 +56,12 @@ async def trigger_json_error():
     return JSONResponse(content={"data": obj})
 
 
-@router.get("/custom-exception")
+@router.get("/custom-exception", include_in_schema=False)
 async def trigger_custom_exception():
     raise ValueError("Este es un error personalizado extremo")
 
 
-@router.get("/nested-error")
+@router.get("/nested-error", include_in_schema=False)
 async def trigger_nested_error():
     def level1():
         def level2():
@@ -76,7 +76,7 @@ async def trigger_nested_error():
     return {"result": level1()}
 
 
-@router.get("/timeout-error")
+@router.get("/timeout-error", include_in_schema=False)
 async def trigger_timeout():
     import asyncio
 
@@ -84,7 +84,7 @@ async def trigger_timeout():
     return {"status": "ok"}
 
 
-@router.get("/recursion-error")
+@router.get("/recursion-error", include_in_schema=False)
 async def trigger_recursion():
     def infinite_recursion(n=0):
         return infinite_recursion(n + 1)
@@ -92,7 +92,7 @@ async def trigger_recursion():
     return {"value": infinite_recursion()}
 
 
-@router.get("/memory-error")
+@router.get("/memory-error", include_in_schema=False)
 async def trigger_memory():
     data = [list(range(100000)) for _ in range(1000)]
     return {"size": len(data)}
