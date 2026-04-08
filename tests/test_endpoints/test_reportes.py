@@ -6,7 +6,7 @@ import pytest
 class TestReportes:
     def test_crear_recibo_success(self, client, auth_headers):
         payload = {
-            "idnum": 1234,
+            "recibo": 1234,
             "cliente": "Juan Perez",
             "monto": 1500.00,
         }
@@ -23,7 +23,7 @@ class TestReportes:
 
     def test_crear_recibo_no_auth(self, client):
         payload = {
-            "idnum": 1234,
+            "recibo": 1234,
             "cliente": "Juan Perez",
             "monto": 1500.00,
         }
@@ -37,7 +37,7 @@ class TestReportes:
 
     def test_crear_recibo_invalid_data(self, client, auth_headers):
         payload = {
-            "idnum": "invalid",
+            "recibo": "invalid",
         }
 
         response = client.post(
@@ -52,21 +52,26 @@ class TestReportes:
         payload = {
             "desde": "2025-01-01",
             "hasta": "2025-01-31",
-            "metodos_pago": ["Efectivo", "Tarjeta"],
         }
 
         with patch("app.api.v1.endpoints.reportes.fetch_all") as mock_resumen:
-            mock_resumen.return_value = [
-                {
-                    "descrip": "Membresia Mensual",
-                    "total": 1500.00,
-                    "tipo_pago": "Efectivo",
-                },
-                {
-                    "descrip": "Clase Personalizada",
-                    "total": 500.00,
-                    "tipo_pago": "Tarjeta",
-                },
+            mock_resumen.side_effect = [
+                [
+                    {
+                        "descrip": "Membresia Mensual",
+                        "total": 1500.00,
+                        "tipo_pago": "Efectivo",
+                    },
+                    {
+                        "descrip": "Clase Personalizada",
+                        "total": 500.00,
+                        "tipo_pago": "Tarjeta",
+                    },
+                ],
+                [
+                    {"fpago": "Efectivo"},
+                    {"fpago": "Tarjeta"},
+                ],
             ]
 
             response = client.post(
