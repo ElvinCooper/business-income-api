@@ -13,7 +13,3 @@ class ReciboPago(BaseModel):
 class ReporteVentasRequest(BaseModel):
     desde: Annotated[date, Field(description="Fecha inicio YYYY-MM-DD")]
     hasta: Annotated[date, Field(description="Fecha fin YYYY-MM-DD")]
-    metodos_pago: Annotated[
-        list[str] | None,
-        Field(description="Lista de formas de pago a incluir (opcional)"),
-    ] = None

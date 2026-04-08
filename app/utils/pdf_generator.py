@@ -124,11 +124,11 @@ def generar_reporte_ventas_termico(datos: dict) -> BytesIO:
 
     def linea():
         nonlocal y
-        y -= 6
+        y -= 5
         c.setFont("Courier", 8)
         c.drawString(5, y, "-" * 42)
 
-    def espacio(px=10):
+    def espacio(px=8):
         nonlocal y
         y -= px
 
@@ -151,77 +151,89 @@ def generar_reporte_ventas_termico(datos: dict) -> BytesIO:
         nonlocal y
         font = "Courier-Bold" if bold else "Courier"
         c.setFont(font, size)
+
         if len(izq) > max_izq:
             izq = izq[: max_izq - 2] + ".."
+
         c.drawString(5, y, izq)
         c.drawRightString(width - 5, y, der)
 
+    # -------- HEADER --------
     texto_centrado(datos["empresa"], 10, True)
-    espacio(10)
+    espacio(8)
 
     texto_centrado(datos["direccion"], 8)
-    espacio(10)
+    espacio(8)
 
-    texto_centrado(f"Tel: {datos['telefono']}", 8)
-    espacio(10)
+    texto_centrado(f"Telefono(s): {datos['telefono']}", 8)
+    espacio(8)
 
-    rnc = datos.get("rnc", "")
-    if rnc:
-        texto_centrado(f"RNC: {rnc}", 8)
-        espacio(12)
-    else:
+    if datos.get("rnc"):
+        texto_centrado(f"RNC : {datos['rnc']}", 8)
         espacio(10)
 
     texto_centrado(f"Desde {datos['desde']} Hasta {datos['hasta']}", 8)
-    espacio(10)
+    espacio(8)
 
     texto_centrado(datos["fecha_impresion"], 8)
-    espacio(10)
+    espacio(8)
 
-    texto_centrado(f"Impreso por: {datos['usuario']}", 8)
+    texto_centrado(f"Impreso por : {datos['usuario']}", 8)
 
     linea()
+    linea()
 
-    espacio(10)
+    # -------- PAG --------
+    espacio(6)
     c.setFont("Courier", 8)
     c.drawString(5, y, "Pag. 1 de 1")
 
-    espacio(15)
+    # -------- TITULO --------
+    espacio(10)
     texto_centrado("RESUMEN VENDIDO POR FECHA", 9, True)
 
-    linea()
-    espacio(10)
-
-    texto_izq_der("DESCRIPCION", "VALOR", 9, True)
-
+    # -------- TABLA --------
+    espacio(6)
     linea()
 
+    espacio(6)
+    texto_izq_der("DESCRIPCION", "Valor", 9, True)
+
+    espacio(6)
+    linea()
+
+    # -------- ITEMS (más compacto) --------
     for item in datos["items"]:
         check_page_overflow(30)
-        espacio(12)
+        espacio(10)
         texto_izq_der(item["descripcion"], f"{item['valor']:,.2f}")
 
-    check_page_overflow(30)
+    # -------- TOTAL --------
+    espacio(10)
     linea()
-    espacio(12)
 
-    texto_izq_der("Total Gral:", f"{datos['total']:,.2f}", 10, True)
+    espacio(10)
+    texto_izq_der("Total Gral :", f"{datos['total']:,.2f}", 10, True)
 
-    check_page_overflow(30)
+    espacio(10)
     linea()
-    espacio(12)
+
+    # -------- RESUMEN PAGOS --------
+    espacio(8)
+    texto_centrado("RESUMEN DE PAGOS", 9, True)
+
+    espacio(6)
+    linea()
 
     for metodo in datos["pagos"]:
         check_page_overflow(20)
-        texto_izq_der(metodo["tipo"], f"{metodo['valor']:,.2f}")
         espacio(10)
+        metodo_limpio = metodo["tipo"].strip()
+        texto_izq_der(metodo_limpio, f"{metodo['valor']:,.2f}")
 
+    espacio(6)
     linea()
-    espacio(12)
-
-    texto_centrado("** FIN DEL REPORTE **", 8)
 
     c.save()
-
     buffer.seek(0)
     return buffer

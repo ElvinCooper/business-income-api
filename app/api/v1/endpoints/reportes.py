@@ -79,11 +79,6 @@ async def crear_reporte_ventas_termico_endpoint(
     condiciones = ["fecha BETWEEN %s AND %s"]
     params = (datos.desde, datos.hasta)
 
-    if datos.metodos_pago:
-        placeholders = ",".join(["%s"] * len(datos.metodos_pago))
-        condiciones.append(f"fpago IN ({placeholders})")
-        params = params + tuple(datos.metodos_pago)
-
     where_clause = " AND ".join(condiciones)
 
     query = f"""
@@ -105,18 +100,29 @@ async def crear_reporte_ventas_termico_endpoint(
 
     for row in rows:
         descrip = row["descrip"]
-        valor = float(row["total"])
+        valor = float(row["total"]) if row["total"] else 0.0
         tipo = row["tipo_pago"]
 
         if descrip not in items_dict:
             items_dict[descrip] = 0.0
         items_dict[descrip] += valor
 
-        if tipo not in pagos_dict:
-            pagos_dict[tipo] = 0.0
-        pagos_dict[tipo] += valor
+        if tipo:
+            tipo_limpio = tipo.strip()
+            if tipo_limpio not in pagos_dict:
+                pagos_dict[tipo_limpio] = 0.0
+            pagos_dict[tipo_limpio] += valor
 
         total += valor
+
+    rows_fpago = await fetch_all(
+        "SELECT DISTINCT TRIM(fpago) as fpago FROM cxc WHERE fpago IS NOT NULL AND fpago != ''"
+    )
+    todas_formas_pago = [row["fpago"] for row in rows_fpago]
+
+    for forma in todas_formas_pago:
+        if forma not in pagos_dict:
+            pagos_dict[forma] = 0.0
 
     items = [{"descripcion": k, "valor": v} for k, v in items_dict.items()]
     pagos = [{"tipo": k, "valor": v} for k, v in pagos_dict.items()]
