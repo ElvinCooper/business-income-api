@@ -14,6 +14,7 @@ def generar_recibo_termico(datos: dict) -> BytesIO:
 
     y = height - 15
 
+    # -------- HEADER --------
     c.setFont("Courier-Bold", 10)
     c.drawCentredString(width / 2, y, datos.get("empresa", "EMPRESA"))
 
@@ -26,79 +27,86 @@ def generar_recibo_termico(datos: dict) -> BytesIO:
     if datos.get("telefono"):
         c.drawCentredString(width / 2, y, f"Tel: {datos['telefono']}")
 
-    y -= 10
-    if datos.get("rnc"):
-        c.drawCentredString(width / 2, y, f"RNC: {datos['rnc']}")
+    # -------- LINE --------
+    y -= 8
+    c.drawString(5, y, "-" * 42)
 
-    y -= 10
-    c.setFont("Courier", 8)
-    c.drawCentredString(width / 2, y, f"Recibo No: {datos['nro_recibo']}")
+    # -------- TIPO TRANSACCION --------
+    y -= 12
+    c.setFont("Courier-Bold", 10)
+    c.drawCentredString(width / 2, y, datos.get("concepto", "PAGO"))
 
-    y -= 10
-    c.setFont("Courier-Bold", 9)
+    # -------- FECHA + TIPO --------
+    y -= 12
+    c.setFont("Courier", 9)
     c.drawCentredString(width / 2, y, datos["fecha"])
 
-    y -= 8
+    # -------- METODO PAGO --------
+    y -= 12
+    c.setFont("Courier-Bold", 9)
+    c.drawCentredString(width / 2, y, datos.get("metodo_pago", "EFECTIVO"))
+
+    # -------- LINE --------
+    y -= 10
     c.setFont("Courier", 8)
     c.drawString(5, y, "-" * 42)
 
-    y -= 10
-    c.setFont("Courier-Bold", 9)
-    c.drawString(5, y, "CLIENTE:")
-
-    y -= 10
+    # -------- CODIGO --------
+    y -= 12
     c.setFont("Courier", 9)
+    c.drawString(5, y, f"Codigo.....: {datos['nro_recibo']}")
+
+    # -------- CLIENTE --------
+    y -= 12
     cliente = datos["cliente"]
     if len(cliente) > 28:
         cliente = cliente[:26] + ".."
-    c.drawString(5, y, cliente)
+    c.drawString(5, y, f"Cliente....: {cliente}")
 
-    y -= 8
-    c.setFont("Courier", 8)
-    c.drawString(5, y, "-" * 42)
-
-    y -= 10
-    c.setFont("Courier-Bold", 9)
-    c.drawString(5, y, "DETALLE:")
-
-    y -= 10
-    c.setFont("Courier", 9)
-    c.drawString(5, y, "Monto:")
-    c.drawRightString(width - 5, y, f"${datos['monto']:,.2f}")
-
-    y -= 10
-    c.setFont("Courier", 9)
-    c.drawString(5, y, "Atendido por:")
-    c.drawRightString(width - 5, y, datos["atendido_por"])
-
-    y -= 8
-    c.setFont("Courier", 8)
-    c.drawString(5, y, "-" * 42)
-
-    y -= 12
+    # -------- TITULO --------
+    y -= 18
     c.setFont("Courier-Bold", 10)
-    c.drawCentredString(width / 2, y, "TOTAL PAGADO")
+    c.drawCentredString(width / 2, y, "DESCRIPCION DE PAGO")
 
-    y -= 12
-    c.setFont("Courier-Bold", 14)
-    c.drawCentredString(width / 2, y, f"${datos['monto']:,.2f}")
+    # -------- MONTO --------
+    y -= 18
+    c.setFont("Courier", 10)
+    c.drawString(5, y, "Valor Pagado")
+    c.drawRightString(width - 5, y, f"{datos['monto']:,.2f}")
 
-    y -= 8
+    # -------- PROXIMO PAGO --------
+    if datos.get("proximo_pago"):
+        y -= 15
+        c.setFont("Courier-Bold", 9)
+        c.drawCentredString(width / 2, y, "Proximo Pago")
+
+        y -= 12
+        c.setFont("Courier", 9)
+        c.drawCentredString(width / 2, y, datos["proximo_pago"])
+
+    # -------- USUARIO --------
+    if datos.get("usuario"):
+        y -= 10
+        c.setFont("Courier", 8)
+        c.drawString(5, y, "-" * 42)
+
+        y -= 10
+        c.setFont("Courier", 9)
+        c.drawCentredString(width / 2, y, datos["usuario"])
+
+    # -------- FOOTER --------
+    y -= 20
     c.setFont("Courier", 8)
-    c.drawString(5, y, "-" * 42)
+    c.drawCentredString(width / 2, y, "Gracias por su pago")
 
     y -= 10
-    c.drawCentredString(width / 2, y, "Gracias por su preferencia")
+    c.drawCentredString(width / 2, y, "Para reclamacion Presentar Ticket")
 
-    y -= 8
-    c.drawCentredString(width / 2, y, "Conserve este recibo")
-
-    y -= 10
-    c.setFont("Courier-Bold", 8)
-    c.drawCentredString(width / 2, y, "ORIGINAL - CLIENTE")
+    # y -= 10
+    # c.setFont("Courier-Bold", 8)
+    # c.drawCentredString(width / 2, y, "ORIGINAL - CLIENTE")
 
     c.save()
-
     buffer.seek(0)
     return buffer
 

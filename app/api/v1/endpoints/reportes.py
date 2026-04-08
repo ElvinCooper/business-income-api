@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.core.dependencies import CurrentUserDep
-from app.db.connection import fetch_all
+from app.db.connection import fetch_one, fetch_all
 from app.schemas.reporte import ReciboPago, ReporteVentasRequest
 from app.utils.pdf_generator import (
     generar_recibo_termico,
@@ -34,7 +34,19 @@ async def crear_recibo(
         "direccion": current_user.direccion,
         "telefono": current_user.telefono,
         "rnc": current_user.rnc,
+        "proximo_pago": None,
+        "usuario": None,
     }
+
+    row_cxc = await fetch_one(
+        "SELECT fechaprox, usuario FROM cxc WHERE recibo = %s",
+        (recibo.idnum,),
+    )
+    if row_cxc:
+        if row_cxc.get("fechaprox"):
+            datos_recibo["proximo_pago"] = row_cxc["fechaprox"].strftime("%d-%m-%Y")
+        if row_cxc.get("usuario"):
+            datos_recibo["usuario"] = row_cxc["usuario"]
 
     try:
         comprobante = generar_recibo_termico(datos_recibo)
