@@ -1,3 +1,6 @@
+from datetime import date
+from typing import Annotated
+
 from pydantic import BaseModel, Field
 
 
@@ -7,25 +10,10 @@ class ReciboPago(BaseModel):
     monto: float = Field(ge=0, description="Monto pagado")
 
 
-class ReporteItem(BaseModel):
-    descripcion: str
-    valor: float = Field(ge=0)
-
-
-class ReportePago(BaseModel):
-    tipo: str
-    valor: float = Field(ge=0)
-
-
 class ReporteVentasRequest(BaseModel):
-    empresa: str
-    direccion: str
-    telefono: str
-    rnc: str
-    desde: str
-    hasta: str
-    fecha_impresion: str
-    usuario: str
-    items: list[ReporteItem]
-    total: float = Field(ge=0)
-    pagos: list[ReportePago]
+    desde: Annotated[date, Field(description="Fecha inicio YYYY-MM-DD")]
+    hasta: Annotated[date, Field(description="Fecha fin YYYY-MM-DD")]
+    metodos_pago: Annotated[
+        list[str] | None,
+        Field(description="Lista de formas de pago a incluir (opcional)"),
+    ] = None

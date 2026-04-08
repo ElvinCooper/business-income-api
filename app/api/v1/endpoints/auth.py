@@ -24,7 +24,8 @@ def _add_token_blocklist(jti: str, idusuario: int):
 async def login(credentials: LoginRequest):
     """Autentica al usuario y devuelve un token JWT."""
     query = """
-        SELECT us.idusuario, us.usuario, us.clave, us.fullname, us.cia, su.empresa
+        SELECT us.idusuario, us.usuario, us.clave, us.fullname, us.cia, 
+               su.empresa, su.direccion, su.telefono
         FROM usuario us 
         JOIN sucursal su ON us.cia = su.idcia
         WHERE us.usuario = %s
@@ -50,6 +51,9 @@ async def login(credentials: LoginRequest):
             "fullname": user["fullname"],
             "cia": int(user["cia"]),
             "empresa": user["empresa"],
+            "direccion": user.get("direccion", ""),
+            "telefono": user.get("telefono", ""),
+            "rnc": user.get("rnc") if "rnc" in user else "",
         }
     )
 

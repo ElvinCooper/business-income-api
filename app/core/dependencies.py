@@ -17,6 +17,9 @@ class CurrentUser(BaseModel):
     fullname: str
     cia: int
     empresa: str
+    direccion: str = ""
+    telefono: str = ""
+    rnc: str = ""
     jti: str
 
 
@@ -53,6 +56,9 @@ async def get_current_user(
     fullname = payload.get("fullname", username)
     cia = payload.get("cia")
     empresa = payload.get("empresa")
+    direccion = payload.get("direccion", "")
+    telefono = payload.get("telefono", "")
+    rnc = payload.get("rnc", "")
 
     if user_id is None:
         raise HTTPException(
@@ -67,6 +73,9 @@ async def get_current_user(
         fullname=str(fullname),
         cia=int(cia) if cia else 0,
         empresa=str(empresa) if empresa else "",
+        direccion=str(direccion),
+        telefono=str(telefono),
+        rnc=str(rnc),
         jti=str(jti) if jti else "",
     )
 
