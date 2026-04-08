@@ -25,7 +25,7 @@ async def crear_recibo(
     ahora_str = ahora.strftime("%d-%m-%Y %H:%M")
 
     datos_recibo = {
-        "nro_recibo": recibo.idnum,
+        "nro_recibo": recibo.recibo,
         "cliente": recibo.cliente,
         "fecha": ahora_str,
         "monto": recibo.monto,
@@ -40,7 +40,7 @@ async def crear_recibo(
 
     row_cxc = await fetch_one(
         "SELECT fechaprox, usuario FROM cxc WHERE recibo = %s",
-        (recibo.idnum,),
+        (recibo.recibo,),
     )
     if row_cxc:
         if row_cxc.get("fechaprox"):
