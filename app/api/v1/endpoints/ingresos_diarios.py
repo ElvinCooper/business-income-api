@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Path, Query
+from fastapi import APIRouter, HTTPException, Path, Query
 
 from app.core.dependencies import CurrentUserDep
 from app.db.connection import fetch_all
@@ -54,6 +54,11 @@ async def get_resumen_por_rango_fecha(
         ORDER BY fecha
     """
     results = await fetch_all(query, (fecha_inicio, fecha_fin))
+    if not results:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No hay ingresos en el rango de fechas {fecha_inicio} a {fecha_fin}",
+        )
     total_general = sum(float(r["total"]) for r in results)
     return {
         "fecha_inicio": fecha_inicio,

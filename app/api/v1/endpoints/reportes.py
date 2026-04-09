@@ -96,6 +96,12 @@ async def crear_reporte_ventas_termico_endpoint(
     """
     rows = await fetch_all(query, params)
 
+    if not rows:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No hay ventas en el rango de fechas {datos.desde} a {datos.hasta}",
+        )
+
     items_dict: dict[str, float] = {}
     pagos_dict: dict[str, float] = {}
     total = 0.0
