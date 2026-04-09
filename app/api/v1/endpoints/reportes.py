@@ -42,11 +42,13 @@ async def crear_recibo(
         "SELECT fechaprox, usuario FROM cxc WHERE recibo = %s",
         (recibo.recibo,),
     )
-    if row_cxc:
-        if row_cxc.get("fechaprox"):
-            datos_recibo["proximo_pago"] = row_cxc["fechaprox"].strftime("%d-%m-%Y")
-        if row_cxc.get("usuario"):
-            datos_recibo["usuario"] = row_cxc["usuario"]
+    if not row_cxc:
+        raise HTTPException(status_code=404, detail="Recibo no encontrado")
+
+    if row_cxc.get("fechaprox"):
+        datos_recibo["proximo_pago"] = row_cxc["fechaprox"].strftime("%d-%m-%Y")
+    if row_cxc.get("usuario"):
+        datos_recibo["usuario"] = row_cxc["usuario"]
 
     try:
         comprobante = generar_recibo_termico(datos_recibo)

@@ -48,6 +48,25 @@ class TestReportes:
 
         assert response.status_code == 422
 
+    def test_crear_recibo_not_found(self, client, auth_headers):
+        payload = {
+            "recibo": 999999,
+            "cliente": "Juan Perez",
+            "monto": 1500.00,
+        }
+
+        with patch("app.api.v1.endpoints.reportes.fetch_one") as mock_fetch:
+            mock_fetch.return_value = None
+
+            response = client.post(
+                "/api/v1/reportes/recibo",
+                json=payload,
+                headers=auth_headers,
+            )
+
+        assert response.status_code == 404
+        assert "Recibo no encontrado" in response.json()["message"]
+
     def test_crear_reporte_ventas_termico_success(self, client, auth_headers):
         payload = {
             "desde": "2025-01-01",
