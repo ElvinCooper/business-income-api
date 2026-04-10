@@ -116,7 +116,7 @@ async def get_resumen_por_usuario(
             SUM(total) as total
         FROM cxc
         WHERE fecha BETWEEN %s AND %s
-        GROUP BY usuario, fpago
+        GROUP BY usuario
         ORDER BY usuario, total DESC
     """
     results = await fetch_all(query, (fecha_inicio, fecha_fin))
