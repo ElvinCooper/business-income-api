@@ -5,6 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
 from app.core.security import decode_access_token
+from app.db.connection import set_db_name
 from app.db.postgres import is_token_revoked
 
 
@@ -17,6 +18,7 @@ class CurrentUser(BaseModel):
     fullname: str
     cia: int
     empresa: str
+    db_name: str
     direccion: str = ""
     telefono: str = ""
     rnc: str = ""
@@ -26,6 +28,7 @@ class CurrentUser(BaseModel):
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
 ) -> CurrentUser:
+    set_db_name(None)
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,6 +59,7 @@ async def get_current_user(
     fullname = payload.get("fullname", username)
     cia = payload.get("cia")
     empresa = payload.get("empresa")
+    db_name = payload.get("db_name", "")
     direccion = payload.get("direccion", "")
     telefono = payload.get("telefono", "")
     rnc = payload.get("rnc", "")
@@ -67,12 +71,16 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    if db_name:
+        set_db_name(db_name)
+
     return CurrentUser(
         user_id=int(user_id),
         username=str(username),
         fullname=str(fullname),
         cia=int(cia) if cia else 0,
         empresa=str(empresa) if empresa else "",
+        db_name=str(db_name) if db_name else "",
         direccion=str(direccion),
         telefono=str(telefono),
         rnc=str(rnc),

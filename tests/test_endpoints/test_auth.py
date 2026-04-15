@@ -19,7 +19,7 @@ class TestLogin:
 
             response = client.post(
                 "/api/v1/auth/login",
-                json={"usuario": "testuser", "clave": "password123"},
+                json={"usuario": "testuser", "clave": "password123", "bd": "test_db"},
             )
 
             assert response.status_code == 200
@@ -36,7 +36,7 @@ class TestLogin:
 
             response = client.post(
                 "/api/v1/auth/login",
-                json={"usuario": "nonexistent", "clave": "password"},
+                json={"usuario": "nonexistent", "clave": "password", "bd": "test_db"},
             )
 
             assert response.status_code == 401
@@ -57,7 +57,11 @@ class TestLogin:
 
             response = client.post(
                 "/api/v1/auth/login",
-                json={"usuario": "testuser", "clave": "wrong_password"},
+                json={
+                    "usuario": "testuser",
+                    "clave": "wrong_password",
+                    "bd": "test_db",
+                },
             )
 
             assert response.status_code == 401

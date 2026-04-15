@@ -20,9 +20,33 @@ def _add_token_blocklist(jti: str, idusuario: int):
     add_token_to_blocklist(jti, idusuario)
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Iniciar sesión",
+    description="Autentica al usuario con las credenciales proporcionadas. "
+    "El parámetro **bd** es el nombre de la base de datos del cliente. "
+    "Si la BD, el usuario o la clave son incorrectos, devuelve error 401.",
+    responses={
+        401: {
+            "description": "Credenciales incorrectas (BD, usuario o contraseña inválidos)",
+            "content": {
+                "application/json": {"example": {"detail": "Credenciales incorrectas"}}
+            },
+        }
+    },
+)
 async def login(credentials: LoginRequest):
-    """Autentica al usuario y devuelve un token JWT."""
+    """Iniciar sesión en el sistema.
+
+    Autentica usando:
+    - **usuario**: nombre de usuario
+    - **clave**: contraseña
+    - **bd**: nombre de la base de datos del cliente
+
+    Si la BD no existe, el usuario no existe o la clave es incorrecta,
+    devuelve 401 con el mensaje "Credenciales incorrectas".
+    """
     query = """
         SELECT us.idusuario, us.usuario, us.clave, us.fullname, us.cia, 
                su.empresa, su.direccion, su.telefono
@@ -30,18 +54,24 @@ async def login(credentials: LoginRequest):
         JOIN sucursal su ON us.cia = su.idcia
         WHERE us.usuario = %s
     """
-    user = await fetch_one(query, (credentials.usuario,))
+    try:
+        user = await fetch_one(query, (credentials.usuario,), db_name=credentials.bd)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales incorrectas",
+        )
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario o contraseña incorrectos",
+            detail="Credenciales incorrectas",
         )
 
     if credentials.clave != user["clave"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario o contraseña incorrectos",
+            detail="Credenciales incorrectas",
         )
 
     access_token = create_access_token(
@@ -51,6 +81,7 @@ async def login(credentials: LoginRequest):
             "fullname": user["fullname"],
             "cia": int(user["cia"]),
             "empresa": user["empresa"],
+            "db_name": credentials.bd,
             "direccion": user.get("direccion", ""),
             "telefono": user.get("telefono", ""),
             "rnc": user.get("rnc") if "rnc" in user else "",
@@ -64,6 +95,7 @@ async def login(credentials: LoginRequest):
         fullname=user["fullname"],
         cia=int(user["cia"]),
         empresa=user["empresa"],
+        db_name=credentials.bd,
     )
 
 
@@ -76,6 +108,7 @@ async def get_current_user_info(current_user: CurrentUserDep):
         fullname=current_user.fullname,
         cia=current_user.cia,
         empresa=current_user.empresa,
+        db_name=current_user.db_name,
     )
 
 

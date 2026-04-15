@@ -42,7 +42,12 @@ class TestGetCurrentUser:
         mock_credentials = MagicMock()
         mock_credentials.credentials = "some-token"
 
-        payload = {"sub": "1", "username": "test", "jti": "revoked-jti"}
+        payload = {
+            "sub": "1",
+            "username": "test",
+            "db_name": "test_db",
+            "jti": "revoked-jti",
+        }
 
         with patch("app.core.dependencies.decode_access_token", return_value=payload):
             with patch("app.core.dependencies.is_token_revoked", return_value=True):
@@ -63,6 +68,7 @@ class TestGetCurrentUser:
             "fullname": "Test User",
             "cia": 1,
             "empresa": "Test Corp",
+            "db_name": "test_db",
             "jti": "valid-jti",
         }
 
