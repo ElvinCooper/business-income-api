@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta, timezone
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -14,7 +15,37 @@ from app.utils.pdf_generator import (
 router = APIRouter(prefix="/reportes", tags=["reportes"])
 
 
-@router.post("/recibo")
+@router.post(
+    "/recibo",
+    summary="Generar recibo de pago",
+    description="Genera un recibo de pago en formato PDF térmico.",
+    responses={
+        200: {
+            "description": "PDF del recibo",
+            "content": {"application/pdf": {}},
+        },
+        401: {
+            "description": "No autorizado",
+            "content": {
+                "application/json": {"example": {"detail": "Token inválido o expirado"}}
+            },
+        },
+        404: {
+            "description": "Recibo no encontrado",
+            "content": {
+                "application/json": {"example": {"detail": "Recibo no encontrado"}}
+            },
+        },
+        500: {
+            "description": "Error al generar el PDF",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Error al generar recibo: ..."}
+                }
+            },
+        },
+    },
+)
 async def crear_recibo(
     recibo: ReciboPago,
     current_user: CurrentUserDep,
@@ -67,7 +98,33 @@ async def crear_recibo(
         )
 
 
-@router.post("/ventas-termico")
+@router.post(
+    "/ventas-termico",
+    summary="Generar reporte de ventas",
+    description="Genera un reporte de ventas en formato PDF térmico con resumen por descripción y forma de pago.",
+    responses={
+        200: {
+            "description": "PDF del reporte de ventas",
+            "content": {"application/pdf": {}},
+        },
+        401: {
+            "description": "No autorizado",
+            "content": {
+                "application/json": {"example": {"detail": "Token inválido o expirado"}}
+            },
+        },
+        404: {
+            "description": "No hay ventas en el rango de fechas",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No hay ventas en el rango de fechas 2025-01-01 a 2025-01-31"
+                    }
+                }
+            },
+        },
+    },
+)
 async def crear_reporte_ventas_termico_endpoint(
     datos: ReporteVentasRequest,
     current_user: CurrentUserDep,

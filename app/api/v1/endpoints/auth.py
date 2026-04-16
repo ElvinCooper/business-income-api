@@ -84,7 +84,7 @@ async def login(credentials: LoginRequest):
             "fullname": user["fullname"],
             "cia": int(user["cia"]),
             "empresa": user["empresa"],
-            "db_name": credentials.bd,
+            "db_name": db_name,
             "direccion": user.get("direccion", ""),
             "telefono": user.get("telefono", ""),
             "rnc": user.get("rnc") if "rnc" in user else "",
@@ -102,7 +102,20 @@ async def login(credentials: LoginRequest):
     )
 
 
-@router.get("/me", response_model=CurrentUserResponse)
+@router.get(
+    "/me",
+    response_model=CurrentUserResponse,
+    summary="Obtener usuario actual",
+    description="Retorna la información del usuario autenticado mediante el token JWT.",
+    responses={
+        401: {
+            "description": "No autorizado - Token inválido, expirado o ausente",
+            "content": {
+                "application/json": {"example": {"detail": "Token inválido o expirado"}}
+            },
+        },
+    },
+)
 async def get_current_user_info(current_user: CurrentUserDep):
     """Obtiene la información del usuario desde el token JWT."""
     return CurrentUserResponse(
@@ -115,7 +128,19 @@ async def get_current_user_info(current_user: CurrentUserDep):
     )
 
 
-@router.post("/logout")
+@router.post(
+    "/logout",
+    summary="Cerrar sesión",
+    description="Invalida el token JWT agregándolo a la blocklist.",
+    responses={
+        401: {
+            "description": "No autorizado - Token inválido, expirado o ausente",
+            "content": {
+                "application/json": {"example": {"detail": "Token inválido o expirado"}}
+            },
+        },
+    },
+)
 async def logout(
     background_tasks: BackgroundTasks,
     current_user: CurrentUserDep,
