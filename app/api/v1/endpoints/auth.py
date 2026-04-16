@@ -55,7 +55,10 @@ async def login(credentials: LoginRequest):
         WHERE us.usuario = %s
     """
     try:
-        user = await fetch_one(query, (credentials.usuario,), db_name=credentials.bd)
+        db_name = credentials.bd.strip().lower()
+        usuario = credentials.usuario.strip()
+        clave = credentials.clave.strip()
+        user = await fetch_one(query, (usuario,), db_name=db_name)
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -68,7 +71,7 @@ async def login(credentials: LoginRequest):
             detail="Credenciales incorrectas",
         )
 
-    if credentials.clave != user["clave"]:
+    if clave != user["clave"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales incorrectas",
