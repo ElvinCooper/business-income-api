@@ -23,9 +23,7 @@ class TestLoggingMiddleware:
         async def call_next(req):
             return response
 
-        result = asyncio.get_event_loop().run_until_complete(
-            middleware.dispatch(request, call_next)
-        )
+        result = asyncio.run(middleware.dispatch(request, call_next))
         assert result.status_code == 200
 
     def test_middleware_calculates_duration(self):
@@ -43,7 +41,5 @@ class TestLoggingMiddleware:
             time.sleep(0.01)
             return response
 
-        result = asyncio.get_event_loop().run_until_complete(
-            middleware.dispatch(request, call_next)
-        )
+        result = asyncio.run(middleware.dispatch(request, call_next))
         assert result.status_code == 201

@@ -10,11 +10,19 @@ class TestReportes:
             "monto": 1500.00,
         }
 
-        response = client.post(
-            "/api/v1/reportes/recibo",
-            json=payload,
-            headers=auth_headers,
-        )
+        with patch("app.api.v1.endpoints.reportes.fetch_one") as mock_fetch:
+            from datetime import datetime
+
+            mock_fetch.return_value = {
+                "fechaprox": datetime(2025, 2, 1),
+                "usuario": "testuser",
+            }
+
+            response = client.post(
+                "/api/v1/reportes/recibo",
+                json=payload,
+                headers=auth_headers,
+            )
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/pdf"

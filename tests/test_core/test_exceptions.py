@@ -36,9 +36,7 @@ class TestHTTPExceptionHandler:
 
         import asyncio
 
-        result = asyncio.get_event_loop().run_until_complete(
-            http_exception_handler(request, exc)
-        )
+        result = asyncio.run(http_exception_handler(request, exc))
 
         assert result.status_code == 401
         assert result.body == b'{"message":"Unauthorized"}'
@@ -52,9 +50,7 @@ class TestHTTPExceptionHandler:
 
         import asyncio
 
-        result = asyncio.get_event_loop().run_until_complete(
-            http_exception_handler(request, exc)
-        )
+        result = asyncio.run(http_exception_handler(request, exc))
 
         assert result.status_code == 404
 
@@ -69,9 +65,7 @@ class TestGenericExceptionHandler:
 
         import asyncio
 
-        result = asyncio.get_event_loop().run_until_complete(
-            generic_exception_handler(request, exc)
-        )
+        result = asyncio.run(generic_exception_handler(request, exc))
 
         assert result.status_code == 500
         assert result.body == b'{"message":"Error interno del servidor"}'
