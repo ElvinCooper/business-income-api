@@ -8,7 +8,7 @@ from app.core.dependencies import CurrentUser, get_current_user
 class TestGetCurrentUser:
     @pytest.mark.asyncio
     async def test_no_credentials_raises_401(self):
-        with patch("app.core.dependencies.security") as mock_security:
+        with patch("app.core.dependencies.security"):
             from fastapi import HTTPException, status
 
             mock_credentials = None

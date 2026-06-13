@@ -1,10 +1,10 @@
-from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi.security import HTTPBearer
 
+from app.core.config import settings
 from app.core.dependencies import CurrentUserDep
-from app.core.security import create_access_token, decode_access_token
+from app.core.security import create_access_token
 from app.db.connection import fetch_one
 from app.db.postgres import add_token_to_blocklist
 from app.schemas.auth import CurrentUserResponse, LoginRequest, TokenResponse
@@ -48,11 +48,9 @@ async def login(credentials: LoginRequest):
     devuelve 401 con el mensaje "Credenciales incorrectas".
     """
     query = """
-        SELECT us.idusuario, us.usuario, us.clave, us.fullname, us.cia, 
-               su.empresa, su.direccion, su.telefono
-        FROM usuario us 
-        JOIN sucursal su ON us.cia = su.idcia
-        WHERE us.usuario = %s
+        SELECT idusuario, usuario, clave, fullname
+        FROM usuario
+        WHERE usuario = %s
     """
     try:
         db_name = credentials.bd.strip().lower()
@@ -82,12 +80,12 @@ async def login(credentials: LoginRequest):
             "sub": str(user["idusuario"]),
             "username": user["usuario"],
             "fullname": user["fullname"],
-            "cia": int(user["cia"]),
-            "empresa": user["empresa"],
+            "cia": 0,
+            "empresa": settings.EMPRESA,
             "db_name": db_name,
-            "direccion": user.get("direccion", ""),
-            "telefono": user.get("telefono", ""),
-            "rnc": user.get("rnc") if "rnc" in user else "",
+            "direccion": settings.DIRECCION,
+            "telefono": settings.TELEFONO,
+            "rnc": settings.RNC,
         }
     )
 
@@ -96,8 +94,8 @@ async def login(credentials: LoginRequest):
         idusuario=user["idusuario"],
         usuario=user["usuario"],
         fullname=user["fullname"],
-        cia=int(user["cia"]),
-        empresa=user["empresa"],
+        cia=0,
+        empresa=settings.EMPRESA,
         db_name=credentials.bd,
     )
 

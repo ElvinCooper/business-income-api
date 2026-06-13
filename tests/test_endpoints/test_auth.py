@@ -1,6 +1,5 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import pytest
 
 
 class TestLogin:
@@ -13,8 +12,6 @@ class TestLogin:
                 "usuario": "testuser",
                 "clave": "password123",
                 "fullname": "Test User",
-                "cia": 1,
-                "empresa": "Test Corp",
             }
 
             response = client.post(
@@ -51,8 +48,6 @@ class TestLogin:
                 "usuario": "testuser",
                 "clave": "correct_password",
                 "fullname": "Test User",
-                "cia": 1,
-                "empresa": "Test Corp",
             }
 
             response = client.post(

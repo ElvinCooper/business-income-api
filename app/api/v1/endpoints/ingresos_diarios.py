@@ -7,7 +7,6 @@ from app.core.dependencies import CurrentUserDep
 from app.db.connection import fetch_all
 from app.schemas.ingreso import (
     IngresoAnualResponse,
-    IngresoDiarioResponse,
     IngresoDiarioWrapper,
     ResumenDiaResponse,
     ResumenFormaPagoResponse,

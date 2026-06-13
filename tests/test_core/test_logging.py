@@ -1,9 +1,7 @@
 import json
 import logging
-from datetime import datetime, timezone
-from unittest.mock import MagicMock
+import sys
 
-import pytest
 
 from app.core.logging import JSONFormatter, get_logger, setup_logging
 
@@ -105,6 +103,3 @@ class TestGetLogger:
         logger1 = get_logger()
         logger2 = get_logger()
         assert logger1 is logger2
-
-
-import sys

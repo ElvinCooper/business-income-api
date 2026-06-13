@@ -80,6 +80,12 @@ El agente tiene acceso a las siguientes skills que debe usar cuando sea relevant
 * **Programación Asíncrona:** Se prefiere el uso de `async def` para los endpoints de la API si se requiere manejar concurrencia de alto rendimiento.
 * **Sintaxis Limpia:** El código debe seguir la filosofía de Python de ser **intuitivo, fácil de aprender y de lectura clara**.
 
+## 1.1 Calidad de Código con Ruff y MyPy
+
+* **Linting y Formateo:** Todo código generado debe ser verificado con **Ruff** (`ruff check .`) para asegurar que sigue los estándares de estilo y no contiene errores de sintaxis o lógica comunes.
+* **Tipado Estático:** Todo código generado debe ser verificado con **MyPy** (`mypy .`) para garantizar que las anotaciones de tipo sean correctas y no haya errores de tipo en tiempo de ejecución.
+* **Obligatorio:** Ambos comandos deben ejecutarse después de cualquier cambio en archivos `.py` y antes de dar por terminada la tarea. Si hay errores, deben corregirse antes de continuar.
+
 ## 2. Desarrollo con FastAPI
 
 * **Instalación:** Utilizar siempre la instalación estándar mediante `pip install "fastapi[standard]"`, la cual incluye **Uvicorn** y otras dependencias críticas para el rendimiento.

@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from app.db.postgres import _sanitize_headers
 

@@ -1,5 +1,4 @@
-from datetime import date, datetime, timedelta, timezone
-from typing import Annotated
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse

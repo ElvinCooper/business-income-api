@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_MINUTES: int = 360
 
+    EMPRESA: str = ""
+    DIRECCION: str = ""
+    TELEFONO: str = ""
+    RNC: str = ""
+
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "postgres"

@@ -85,8 +85,6 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 
 
 async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    tb = traceback.format_exc()
-
     logger.error(
         f"Unhandled exception: {str(exc)}",
         extra={

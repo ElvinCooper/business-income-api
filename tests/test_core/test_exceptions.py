@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, Request
 from unittest.mock import MagicMock
 
 from app.core.exceptions import (
