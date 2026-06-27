@@ -18,6 +18,7 @@ class TokenResponse(BaseModel):
     cia: int = 0
     empresa: str = ""
     db_name: str
+    #debug: str
 
 
 class CurrentUserResponse(BaseModel):

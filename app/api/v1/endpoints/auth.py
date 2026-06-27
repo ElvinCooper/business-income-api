@@ -48,13 +48,13 @@ async def login(credentials: LoginRequest):
     devuelve 401 con el mensaje "Credenciales incorrectas".
     """
     query = """
-        SELECT idusuario, usuario, clave, fullname
+        SELECT idusuario, lower(usuario) as usuario, clave, fullname
         FROM usuario
         WHERE usuario = %s
     """
     try:
         db_name = credentials.bd.strip().lower()
-        usuario = credentials.usuario.strip()
+        usuario = credentials.usuario.strip().lower()
         clave = credentials.clave.strip()
         user = await fetch_one(query, (usuario,), db_name=db_name)
     except Exception:
@@ -86,7 +86,8 @@ async def login(credentials: LoginRequest):
             "direccion": settings.DIRECCION,
             "telefono": settings.TELEFONO,
             "rnc": settings.RNC,
-        }
+        }   
+        
     )
 
     return TokenResponse(
@@ -97,7 +98,10 @@ async def login(credentials: LoginRequest):
         cia=0,
         empresa=settings.EMPRESA,
         db_name=credentials.bd,
+        #debug=f"usuario entrante: {usuario} usuario de la bd: {user}",
     )
+    
+    
 
 
 @router.get(
